@@ -22,7 +22,7 @@ public:
 	//搜索函数
 	BTreeNode* search(int _find_key);
 	
-	void splitChilde(int _key_range, BTreeNode* targetNode);
+	void splitChild(int _key_range, BTreeNode* targetNode);
 
 	void insertNonFull(int _key);
 	friend class BTree;
@@ -58,10 +58,10 @@ BTreeNode::BTreeNode(int _degree, bool _isLeaf){
 
 void BTreeNode::traverse(){
 	for (int i = 0; i <= count_key; ++i){
-		if(isLeaf == false)
-			child[i]->traverse();
 		if(i > 0)
 			cout<<key[i]<<' ';
+		if(isLeaf == false)
+			child[i]->traverse();
 	}
 }
 
@@ -72,7 +72,7 @@ BTreeNode* BTreeNode::search(int _find_key){
 	//相等
 	if(_find_key == key[i])	return this;
 	//不等但已经是叶子节点
-	if(isLeaf = true) return NULL;
+	if(isLeaf == true) return NULL;
 	//不等但是不是叶子节点，继续找
 	return child[i-1]->search(_find_key);
 }
@@ -91,7 +91,7 @@ void BTree::insertNode(int _key){
 			BTreeNode *temp_node = new BTreeNode(degree,false);
 
 			temp_node->child[0] = root;
-			temp_node->splitChilde(0,root);
+			temp_node->splitChild(1,root);
 
 			//_key小就在左边，否则就取右边
 			int i = 0;
@@ -117,7 +117,7 @@ void BTreeNode::insertNonFull(int _key){
 			key[i+1] = key[i];
 			i --;
 		}
-		key[i] = _key;
+		key[i+1] = _key;
 		//关键字个数增加
 		count_key = count_key+1;
 	}
@@ -128,7 +128,7 @@ void BTreeNode::insertNonFull(int _key){
 
 		//子节点满，分裂
 		if(child[i]->count_key==child[i]->degree){
-			splitChilde(i+1,child[i]);
+			splitChild(i+1,child[i]);
 
 			if(key[i+1] < _key) i++;
 		}
@@ -137,7 +137,7 @@ void BTreeNode::insertNonFull(int _key){
 }
 //分裂节点，只有在节点关键字满的情况下分裂
 //min_index是中间的数，向上取整， targetNode是被分裂节点
-void BTreeNode::splitChilde(int _key_range, BTreeNode* targetNode){
+void BTreeNode::splitChild(int _key_range, BTreeNode* targetNode){
 	//新建分裂出的子节点
 	BTreeNode* other_node = new BTreeNode(targetNode->degree,targetNode->isLeaf);
 	other_node->count_key = targetNode->degree/2;
@@ -146,12 +146,12 @@ void BTreeNode::splitChilde(int _key_range, BTreeNode* targetNode){
 	//上传至父节点的关键字
 	int mid_key = targetNode->key[(targetNode->degree+1)/2];
 	//复制旧节点后面的数据到新建节点
-	for (int i = other_node_start,j = 1; i <= targetNode->degree; ++i){
-		other_node->key[j] = key[i];
-		other_node->child[j] = child[i];
+	for (int i = other_node_start,j = 1; i <= targetNode->degree; ++i,++j){
+		other_node->key[j] = targetNode->key[i];
+		other_node->child[j] = targetNode->child[i];
 		child[i] = NULL;
 	}
-	other_node->child[0] = child[other_node_start];
+	other_node->child[0] = child[other_node_start-1];
 	targetNode->count_key = (targetNode->degree+1)/2-1;
 
 	//移动父节点的关键字和子节点位置
@@ -167,15 +167,23 @@ void BTreeNode::splitChilde(int _key_range, BTreeNode* targetNode){
 
 int main(int argc, char const *argv[])
 {
-	BTree t(3); // A B-Tree with minium degree 3
+	BTree t(5); // A B-Tree with minium degree 3
     t.insertNode(10);
+    t.traverse();cout<<endl; 
     t.insertNode(20);
+    t.traverse();cout<<endl;
     t.insertNode(5);
+    t.traverse();cout<<endl;
     t.insertNode(6);
+    t.traverse();cout<<endl;
     t.insertNode(12);
+    t.traverse();cout<<endl;
     t.insertNode(30);
+    t.traverse();cout<<endl;
     t.insertNode(7);
+    t.traverse();cout<<endl;
     t.insertNode(17);
+    t.traverse();cout<<endl;
  
     cout << "Traversal of the constucted tree is ";
     t.traverse();
